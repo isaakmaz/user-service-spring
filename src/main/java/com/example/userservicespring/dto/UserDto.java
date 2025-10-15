@@ -1,6 +1,4 @@
 package com.example.userservicespring.dto;
 
-import java.time.LocalDateTime;
-
-public record UserDto(Long id, String name, String email, Integer age, LocalDateTime createdAt) {
+public record UserDto(Long id, String name, String email, Integer age) {
 }
