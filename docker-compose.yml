@@ -6,9 +6,9 @@ services:
     image: postgres:15-alpine
     container_name: user-db
     environment:
-      - POSTGRES_DB=users      # Создаем БД с именем 'users'
-      - POSTGRES_USER=user     # Создаем пользователя 'user'
-      - POSTGRES_PASSWORD=password # Устанавливаем ему пароль 'password'
+      - POSTGRES_DB=users
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
     ports:
       - "5432:5432"
     volumes:
@@ -16,7 +16,7 @@ services:
 
   # Сервис для нашего Spring Boot приложения
   app:
-    build: .  # Собираем образ из Dockerfile в текущей папке
+    build: .
     container_name: user-app
     depends_on:
       - db
