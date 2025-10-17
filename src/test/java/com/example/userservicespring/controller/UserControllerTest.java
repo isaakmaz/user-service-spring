@@ -38,7 +38,7 @@ class UserControllerTest {
         UserDto fakeUser = new UserDto(1L, "Mark Palc", "marc.palc@example.com", 30);
         when(userService.findById(1L)).thenReturn(Optional.of(fakeUser));
 
-        mockMvc.perform(get("/api/users/getUser/1"))
+        mockMvc.perform(get("/api/users/1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.name").value("Mark Palc"))
@@ -49,7 +49,7 @@ class UserControllerTest {
     void getUserById_whenUserDoesNotExist_shouldReturnStatus404() throws Exception {
         when(userService.findById(999L)).thenThrow(new UserNotFoundException("User not found with id: 999"));
 
-        mockMvc.perform(get("/api/users/getUser/999"))
+        mockMvc.perform(get("/api/users/999"))
                 .andExpect(status().isNotFound());
     }
 
@@ -60,7 +60,7 @@ class UserControllerTest {
         UserDto updatedUserDto = new UserDto(userId, "Екатерина Блу", "kate.blue@example.ru", 31);
         when(userService.update(eq(userId), any(CreateUserRequestDto.class))).thenReturn(updatedUserDto);
 
-        mockMvc.perform(put("/api/users/updateUser/" + userId)
+        mockMvc.perform(put("/api/users/" + userId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
                 .andExpect(status().isOk())
@@ -72,7 +72,7 @@ class UserControllerTest {
     void deleteUser_whenUserExists_shouldReturnNoContent() throws Exception {
         long userId = 1L;
 
-        mockMvc.perform(delete("/api/users/deleteUser/" + userId))
+        mockMvc.perform(delete("/api/users/" + userId))
                 .andExpect(status().isNoContent());
     }
 }
