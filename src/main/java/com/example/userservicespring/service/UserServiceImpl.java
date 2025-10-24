@@ -28,7 +28,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserDto save(CreateUserRequestDto requestDto) {
+    public User save(CreateUserRequestDto requestDto) {
         User user = UserMapper.toEntity(requestDto);
         User savedUser = userRepository.save(user);
 
@@ -36,7 +36,7 @@ public class UserServiceImpl implements UserService {
         UserEventDto event = new UserEventDto(EventType.USER_CREATED, savedUser.getEmail(), savedUser.getName());
         kafkaProducerService.sendUserEvent(event);
 
-        return UserMapper.toDto(savedUser);
+        return savedUser;
     }
 
     @Override
@@ -45,6 +45,13 @@ public class UserServiceImpl implements UserService {
         return userRepository.findById(id)
                 .map(UserMapper::toDto);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<User> findUserById(Long id) {
+        return userRepository.findById(id);
+    }
+
 
     @Override
     @Transactional
