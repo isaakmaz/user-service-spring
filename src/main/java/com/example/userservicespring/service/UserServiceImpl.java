@@ -1,9 +1,8 @@
 package com.example.userservicespring.service;
 
 import com.example.userservicespring.dto.CreateUserRequestDto;
-import com.example.userservicespring.dto.EventType;
+import com.example.userservicespring.dto.EmailNotificationDto;
 import com.example.userservicespring.dto.UserDto;
-import com.example.userservicespring.dto.UserEventDto;
 import com.example.userservicespring.entity.User;
 import com.example.userservicespring.exception.UserNotFoundException;
 import com.example.userservicespring.kafka.KafkaProducerService;
@@ -18,9 +17,8 @@ import java.util.Optional;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-    private final KafkaProducerService kafkaProducerService; // Наша новая зависимость
+    private final KafkaProducerService kafkaProducerService;
 
-    // Внедряем обе зависимости через конструктор
     public UserServiceImpl(UserRepository userRepository, KafkaProducerService kafkaProducerService) {
         this.userRepository = userRepository;
         this.kafkaProducerService = kafkaProducerService;
@@ -32,9 +30,11 @@ public class UserServiceImpl implements UserService {
         User user = UserMapper.toEntity(requestDto);
         User savedUser = userRepository.save(user);
 
-        // После успешного сохранения отправляем событие в Kafka
-        UserEventDto event = new UserEventDto(EventType.USER_CREATED, savedUser.getEmail(), savedUser.getName());
-        kafkaProducerService.sendUserEvent(event);
+        String subject = "Добро пожаловать!";
+        String body = String.format("Здравствуйте, %s! Ваш аккаунт на сайте 'Мой Супер Сайт' был успешно создан.", savedUser.getName());
+        EmailNotificationDto notification = new EmailNotificationDto(savedUser.getEmail(), subject, body);
+
+        kafkaProducerService.sendEmailNotification(notification);
 
         return savedUser;
     }
@@ -70,15 +70,16 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void delete(Long id) {
-        // Сначала находим пользователя, чтобы получить его данные для Kafka
         User userToDelete = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("Cannot delete. User not found with id: " + id));
 
-        // Теперь удаляем
         userRepository.deleteById(id);
 
-        // После успешного удаления отправляем событие
-        UserEventDto event = new UserEventDto(EventType.USER_DELETED, userToDelete.getEmail(), userToDelete.getName());
-        kafkaProducerService.sendUserEvent(event);
+        String subject = "Ваш аккаунт был удален";
+        String body = String.format("Здравствуйте, %s! Ваш аккаунт был удалён с сайта 'Мой Супер Сайт'.", userToDelete.getName());
+        EmailNotificationDto notification = new EmailNotificationDto(userToDelete.getEmail(), subject, body);
+
+        kafkaProducerService.sendEmailNotification(notification);
     }
+
 }
